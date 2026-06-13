@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MNQ ORB Strategy Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0D1117;
+    --surface: #161B22;
+    --surface2: #1C2330;
+    --border: #30363D;
+    --green: #00D084;
+    --green-dim: #00D08422;
+    --green-mid: #00D08444;
+    --yellow: #FFB800;
+    --red: #FF4D4D;
+    --text: #F0F6FF;
+    --muted: #8B949E;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(13,17,23,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-logo {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--green);
+    letter-spacing: 0.05em;
+  }
+  .nav-cta {
+    background: var(--green);
+    color: #000;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 8px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+  .nav-cta:hover { opacity: 0.85; }
+
+  /* HERO */
+  .hero {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 80px 24px 60px;
+    text-align: center;
+  }
+  .eyebrow {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--green);
+    background: var(--green-dim);
+    border: 1px solid var(--green-mid);
+    padding: 5px 14px;
+    border-radius: 100px;
+    margin-bottom: 28px;
+    text-transform: uppercase;
+  }
+  .hero h1 {
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 24px;
+  }
+  .hero h1 span { color: var(--green); }
+  .hero-sub {
+    font-size: 18px;
+    color: var(--muted);
+    max-width: 540px;
+    margin: 0 auto 40px;
+    line-height: 1.7;
+  }
+  .hero-sub strong { color: var(--text); }
+
+  /* TERMINAL MOCKUP — signature element */
+  .terminal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 48px auto;
+    max-width: 640px;
+    text-align: left;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,208,132,0.08);
+  }
+  .terminal-bar {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-r { background: #FF5F57; }
+  .dot-y { background: #FEBC2E; }
+  .dot-g { background: #28C840; }
+  .terminal-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-left: auto;
+    margin-right: auto;
+    letter-spacing: 0.05em;
+  }
+  .terminal-body { padding: 20px 24px; }
+  .t-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .check-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(48,54,61,0.5);
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+  .check-row:last-child { border-bottom: none; }
+  .check-icon { font-size: 15px; width: 20px; flex-shrink: 0; }
+  .check-text { color: var(--text); }
+  .check-text.pass { color: var(--green); }
+  .check-text.warn { color: var(--yellow); }
+  .check-text.fail { color: var(--red); text-decoration: line-through; opacity: 0.6; }
+  .check-badge {
+    margin-left: auto;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  .badge-pass { background: var(--green-dim); color: var(--green); border: 1px solid var(--green-mid); }
+  .badge-warn { background: #FFB80022; color: var(--yellow); border: 1px solid #FFB80055; }
+  .badge-fail { background: #FF4D4D22; color: var(--red); border: 1px solid #FF4D4D44; }
+  .t-divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+  .t-result {
+    font-family: var(--mono);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .t-result-label { color: var(--muted); }
+  .t-result-val { color: var(--green); font-weight: 700; }
+
+  /* SECTIONS */
+  section { max-width: 720px; margin: 0 auto; padding: 64px 24px; }
+  section + section { padding-top: 0; }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--green);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  h2 {
+    font-size: clamp(24px, 4vw, 36px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 20px;
+  }
+  p { color: var(--muted); margin-bottom: 16px; line-height: 1.75; }
+  p strong { color: var(--text); }
+
+  /* PROBLEM SECTION */
+  .problem-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 32px;
+  }
+  @media (max-width: 560px) { .problem-grid { grid-template-columns: 1fr; } }
+  .problem-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .problem-card .icon { font-size: 20px; margin-bottom: 10px; }
+  .problem-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .problem-card p { font-size: 13px; margin: 0; }
+
+  /* WHAT'S INSIDE */
+  .contents-list { margin-top: 32px; display: flex; flex-direction: column; gap: 2px; }
+  .content-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    transition: border-color 0.15s;
+  }
+  .content-row:hover { border-color: var(--green); }
+  .content-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--green);
+    background: var(--green-dim);
+    border: 1px solid var(--green-mid);
+    padding: 2px 8px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .content-text h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .content-text p { font-size: 13px; margin: 0; }
+
+  /* DIVIDER */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  /* FOR WHO */
+  .who-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 32px;
+  }
+  @media (max-width: 560px) { .who-grid { grid-template-columns: 1fr; } }
+  .who-card {
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 24px;
+  }
+  .who-card.yes { border: 1px solid var(--green-mid); }
+  .who-card.no { border: 1px solid rgba(255,77,77,0.3); }
+  .who-card h3 { font-size: 13px; font-weight: 700; margin-bottom: 14px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .who-card.yes h3 { color: var(--green); }
+  .who-card.no h3 { color: var(--red); }
+  .who-item {
+    display: flex; gap: 10px;
+    font-size: 13px; color: var(--muted);
+    margin-bottom: 10px;
+    line-height: 1.5;
+  }
+  .who-item:last-child { margin-bottom: 0; }
+
+  /* PRICING */
+  .price-card {
+    background: var(--surface);
+    border: 1px solid var(--green);
+    border-radius: 16px;
+    padding: 40px;
+    text-align: center;
+    max-width: 440px;
+    margin: 40px auto 0;
+    box-shadow: 0 0 60px rgba(0,208,132,0.08);
+  }
+  .price-tag {
+    font-size: 56px;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    color: var(--green);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .price-sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+  .price-includes { text-align: left; margin-bottom: 32px; }
+  .price-item {
+    display: flex; gap: 10px; align-items: flex-start;
+    font-size: 14px; margin-bottom: 10px; color: var(--text);
+  }
+  .price-item span:first-child { color: var(--green); flex-shrink: 0; }
+  .buy-btn {
+    display: block;
+    width: 100%;
+    background: var(--green);
+    color: #000;
+    font-weight: 800;
+    font-size: 16px;
+    padding: 16px;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: opacity 0.15s, transform 0.1s;
+    letter-spacing: -0.01em;
+  }
+  .buy-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .guarantee {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 16px;
+    line-height: 1.5;
+  }
+
+  /* FAQ */
+  .faq-list { margin-top: 32px; display: flex; flex-direction: column; gap: 2px; }
+  .faq-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 24px;
+  }
+  .faq-item h4 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .faq-item p { font-size: 14px; margin: 0; }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 24px;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+  footer a { color: var(--muted); text-decoration: none; }
+
+  /* TICKER TAPE */
+  .ticker {
+    background: var(--surface2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+    padding: 10px 0;
+  }
+  .ticker-inner {
+    display: flex;
+    gap: 48px;
+    animation: scroll 28s linear infinite;
+    white-space: nowrap;
+    width: max-content;
+  }
+  .ticker-item {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ticker-item .up { color: var(--green); }
+  .ticker-item .dn { color: var(--red); }
+  @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <span class="nav-logo">MNQ // ORB STRATEGY</span>
+  <a href="https://3048986799424.gumroad.com/l/bdlsf" class="nav-cta">Get the Guide →</a>
+</nav>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner">
+    <span class="ticker-item">MNQ1! <span class="up">▲ +0.84%</span></span>
+    <span class="ticker-item">VWAP <span class="up">ABOVE</span></span>
+    <span class="ticker-item">ORB RANGE <span class="up">CONFIRMED</span></span>
+    <span class="ticker-item">R1 TARGET <span class="up">30,510</span></span>
+    <span class="ticker-item">SESSION <span class="up">RTH ACTIVE</span></span>
+    <span class="ticker-item">LUXALGO <span class="up">BULLISH</span></span>
+    <span class="ticker-item">MNQ1! <span class="up">▲ +0.84%</span></span>
+    <span class="ticker-item">VWAP <span class="up">ABOVE</span></span>
+    <span class="ticker-item">ORB RANGE <span class="up">CONFIRMED</span></span>
+    <span class="ticker-item">R1 TARGET <span class="up">30,510</span></span>
+    <span class="ticker-item">SESSION <span class="up">RTH ACTIVE</span></span>
+    <span class="ticker-item">LUXALGO <span class="up">BULLISH</span></span>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="eyebrow">MNQ · 5-Minute Chart · Opening Range Breakout</div>
+  <h1>Stop guessing.<br><span>Trade a system.</span></h1>
+  <p class="hero-sub">
+    A complete, rules-based playbook for trading the Micro E-mini Nasdaq with the ORB strategy —
+    <strong>built from real trades, not theory.</strong>
+    Every entry condition, stop rule, and profit target is spelled out exactly.
+  </p>
+  <a href="https://3048986799424.gumroad.com/l/bdlsf" class="nav-cta" style="font-size:16px; padding:14px 36px;">Get the Strategy Guide — $97</a>
+
+  <!-- TERMINAL MOCKUP -->
+  <div class="terminal">
+    <div class="terminal-bar">
+      <span class="dot dot-r"></span>
+      <span class="dot dot-y"></span>
+      <span class="dot dot-g"></span>
+      <span class="terminal-title">MNQ_ORB_ENTRY_CHECK · 09:47:32 ET</span>
+    </div>
+    <div class="terminal-body">
+      <div class="t-label">4-Confirmation Entry Sequence</div>
+      <div class="check-row">
+        <span class="check-icon">✓</span>
+        <span class="check-text pass">Price above VWAP (29,311.68)</span>
+        <span class="check-badge badge-pass">PASS</span>
+      </div>
+      <div class="check-row">
+        <span class="check-icon">✓</span>
+        <span class="check-text pass">Candle close above ORB high (28,552.75)</span>
+        <span class="check-badge badge-pass">PASS</span>
+      </div>
+      <div class="check-row">
+        <span class="check-icon">✓</span>
+        <span class="check-text pass">LuxAlgo trendline signal: BULLISH</span>
+        <span class="check-badge badge-pass">PASS</span>
+      </div>
+      <div class="check-row">
+        <span class="check-icon">✓</span>
+        <span class="check-text pass">Volume expanding on the break</span>
+        <span class="check-badge badge-pass">PASS</span>
+      </div>
+      <hr class="t-divider">
+      <div class="t-result">
+        <span class="t-result-label">STATUS</span>
+        <span class="t-result-val">▶  ENTER LONG · T1: R1 (30,510) · T2: R2 · STOP: -10pts</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- PROBLEM -->
+<section>
+  <div class="section-label">The Problem</div>
+  <h2>Good strategy.<br>Inconsistent results.</h2>
+  <p>You know the ORB setup. You've seen it work. But some days you nail it and some days you get chopped up — and you can't always explain why.</p>
+  <p>It's rarely the strategy. <strong>It's the conditions you're trading it in, and the rules you're bending when you're impatient.</strong></p>
+
+  <div class="problem-grid">
+    <div class="problem-card">
+      <div class="icon">⚡</div>
+      <h3>Chasing the break</h3>
+      <p>Entering before the candle closes and getting reversed immediately.</p>
+    </div>
+    <div class="problem-card">
+      <div class="icon">🎯</div>
+      <h3>No target framework</h3>
+      <p>Exiting too early on good trades, or holding past the obvious level.</p>
+    </div>
+    <div class="problem-card">
+      <div class="icon">📉</div>
+      <h3>Trading the wrong days</h3>
+      <p>Taking ORB trades on choppy, data-heavy, or news-driven sessions.</p>
+    </div>
+    <div class="problem-card">
+      <div class="icon">🔁</div>
+      <h3>Revenge trading</h3>
+      <p>One bad trade leads to three more. No hard rules on when to stop.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- WHAT'S INSIDE -->
+<section>
+  <div class="section-label">What's Inside</div>
+  <h2>Everything in the guide.</h2>
+  <p>Eight sections. No padding. Each one answers a specific question you face before, during, or after a trade.</p>
+
+  <div class="contents-list">
+    <div class="content-row">
+      <span class="content-num">01</span>
+      <div class="content-text">
+        <h4>Strategy Overview</h4>
+        <p>Why MNQ, how ORB + VWAP + Pivots work as a system, and the logic behind every component.</p>
+      </div>
+    </div>
+    <div class="content-row">
+      <span class="content-num">02</span>
+      <div class="content-text">
+        <h4>Day Classification System</h4>
+        <p>Type A / B / C framework — know before 9:30 whether to trade aggressively, cautiously, or not at all. This section alone will save more money than anything else.</p>
+      </div>
+    </div>
+    <div class="content-row">
+      <span class="content-num">03</span>
+      <div class="content-text">
+        <h4>The 4-Confirmation Entry Sequence</h4>
+        <p>Exact rules for every confirmation: VWAP position, ORB break, LuxAlgo signal, candle close. All four required. No exceptions.</p>
+      </div>
+    </div>
+    <div class="content-row">
+      <span class="content-num">04</span>
+      <div class="content-text">
+        <h4>Stop Loss Rules</h4>
+        <p>Two valid stop methods with exact placement logic, plus how to trail as the trade moves in your favor.</p>
+      </div>
+    </div>
+    <div class="content-row">
+      <span class="content-num">05</span>
+      <div class="content-text">
+        <h4>Tiered Profit Targets</h4>
+        <p>40/40/20 exit framework using R1, R2, and measured move. Partial profit rules for Type B days.</p>
+      </div>
+    </div>
+    <div class="content-row">
+      <span class="content-num">06</span>
+      <div class="content-text">
+        <h4>The No-Trade Checklist</h4>
+        <p>10 conditions that mean stay out. Most bad trades fail at least one of these. Print it and keep it at your desk.</p>
+      </div>
+    </div>
+    <div class="content-row">
+      <span class="content-num">07</span>
+      <div class="content-text">
+        <h4>Consistency Framework</h4>
+        <p>Daily loss limits, post-session scorecard, and a bad-day pattern tracker. Turns your experience into deliberate improvement.</p>
+      </div>
+    </div>
+    <div class="content-row">
+      <span class="content-num">08</span>
+      <div class="content-text">
+        <h4>Quick Reference Card</h4>
+        <p>One printable page: long setup, short setup, stop rules, targets. Everything you need during a live trade.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- WHO IT'S FOR -->
+<section>
+  <div class="section-label">Who It's For</div>
+  <h2>Be honest with yourself.</h2>
+  <div class="who-grid">
+    <div class="who-card yes">
+      <h3>✓ This is for you if</h3>
+      <div class="who-item"><span>→</span><span>You already trade MNQ or NQ and know what the ORB is</span></div>
+      <div class="who-item"><span>→</span><span>You have good days and bad days with no clear pattern</span></div>
+      <div class="who-item"><span>→</span><span>You want a specific, rules-based system — not more concepts</span></div>
+      <div class="who-item"><span>→</span><span>You're willing to follow rules even when your gut says otherwise</span></div>
+    </div>
+    <div class="who-card no">
+      <h3>✗ This isn't for you if</h3>
+      <div class="who-item"><span>→</span><span>You've never traded futures before (start with the basics first)</span></div>
+      <div class="who-item"><span>→</span><span>You're looking for an automated bot or signal service</span></div>
+      <div class="who-item"><span>→</span><span>You want a system you can trade without any screen time</span></div>
+      <div class="who-item"><span>→</span><span>You're not willing to take partial profits and let rules override emotions</span></div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="section-label">Pricing</div>
+  <h2>One price. Everything included.</h2>
+  <p>No upsells. No monthly fee. No watered-down free version.</p>
+
+  <div class="price-card">
+    <div class="price-tag">$97</div>
+    <div class="price-sub">One-time · Instant download</div>
+    <div class="price-includes">
+      <div class="price-item"><span>✓</span><span>Full 8-section strategy guide (PDF)</span></div>
+      <div class="price-item"><span>✓</span><span>Day Classification System (Type A/B/C)</span></div>
+      <div class="price-item"><span>✓</span><span>4-Confirmation entry rules</span></div>
+      <div class="price-item"><span>✓</span><span>Tiered target framework with partial exit rules</span></div>
+      <div class="price-item"><span>✓</span><span>No-Trade checklist (printable)</span></div>
+      <div class="price-item"><span>✓</span><span>Quick Reference Card for live trading</span></div>
+      <div class="price-item"><span>✓</span><span>Consistency scorecard and loss limit rules</span></div>
+    </div>
+    <a href="https://3048986799424.gumroad.com/l/bdlsf" class="buy-btn">Get Instant Access →</a>
+    <p class="guarantee">One bad trade costs more than this guide. If it doesn't help, email for a full refund within 30 days.</p>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- FAQ -->
+<section>
+  <div class="section-label">FAQ</div>
+  <h2>Common questions.</h2>
+  <div class="faq-list">
+    <div class="faq-item">
+      <h4>Do I need specific software or indicators?</h4>
+      <p>You need TradingView (free works), the LuxAlgo Trendlines indicator, a VWAP indicator, and a Pivot Points indicator. All are available on TradingView's free plan. The guide covers how to set them up.</p>
+    </div>
+    <div class="faq-item">
+      <h4>Does this work on ES or other instruments?</h4>
+      <p>The system is built and optimized for MNQ. The concepts apply to ES and NQ, but the specific levels, sizing logic, and examples are MNQ-specific. Use it on other instruments at your own discretion.</p>
+    </div>
+    <div class="faq-item">
+      <h4>How much time does this require per day?</h4>
+      <p>15–20 minutes of pre-market prep before 9:30 ET, then active screen time from 9:30 to approximately 11:00 ET when most setups form. The guide includes a no-trade rule after 11:30 ET.</p>
+    </div>
+    <div class="faq-item">
+      <h4>What account size do I need?</h4>
+      <p>MNQ requires roughly $500–$1,000 in margin per contract depending on your broker. The guide covers position sizing for different account sizes. Smaller accounts trade 1 contract; larger accounts can scale up using the included sizing rules.</p>
+    </div>
+    <div class="faq-item">
+      <h4>Is this a guarantee of profits?</h4>
+      <p>No. Futures trading involves substantial risk of loss. This guide gives you a specific, testable system — results depend on your execution, discipline, and market conditions. Past performance of any strategy is not indicative of future results.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p style="margin-bottom:8px;">MNQ ORB Strategy Guide · For educational purposes only · Futures trading involves risk of loss</p>
+  <p><a href="#">Refund Policy</a> · <a href="#">Contact</a></p>
+</footer>
+
+</body>
+</html>
